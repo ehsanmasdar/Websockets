@@ -1,0 +1,77 @@
+<!doctype html>
+<html>
+
+  <head>
+	<meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>Socket.IO chat</title>
+	<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js"></script>
+    <link href="/styles/main.css" rel="stylesheet">
+	<link rel="stylesheet" href="/styles/bootstrap.min.css">
+  </head>
+  <body>
+  	<div class="container">
+		<ul id="messages"></ul>
+		<div class="row">
+			<div class="col-md-6 col-md-offset-4">
+					<h1 id="users">Current Users: </h1> 
+					<h1 id="red" style="color:red;">Red Total: </h1><h1 id="rednum"></h1>
+					<h1 id="blue" style="color:cyan;">Blue Total: </h1><h1 id="bluenum"></h1>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-md-4 col-md-offset-4">
+				<form role="form">
+					<button  type="submit"  class="btn btn-primary">Start</button>
+				</form>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-md-6 col-md-offset-4">
+					<h1 id="winner"></h1>
+			</div>
+		</div>
+	</div>
+	<script src="/socket.io/socket.io.js"></script>
+	<script>
+		$('form').submit(function(){
+			console.log('start');
+			socket.emit('start');
+			return false;
+		});
+		var socket = io();
+		socket.emit('room', {room:"admin"});
+		socket.on('users', function (data) {
+			console.log('users:', data);
+			$('#users').text(function(i, oldText) {
+				return "Current Users: " + data.users;
+			});
+		});
+		socket.on('scoreboard', function (data) {
+			console.log('users:', data);
+			$('#rednum').text(function(i, oldText) {
+				return data.red;
+			});
+			$('#bluenum').text(function(i, oldText) {
+				return data.blue;
+			});
+		});
+		socket.on('gameend', function (data) {
+			console.log('prompt:', data);
+			$('#winner').text(function(i, oldText) {
+				if (data.winner == "Red"){
+					$('#winner').css('color','red');
+					return "Red Wins!";
+				}
+				else{
+					$('#winner').css('color','cyan');
+					return "Blue Wins!";
+				}
+			});
+		});
+    </script>
+  </body> 
+</html>

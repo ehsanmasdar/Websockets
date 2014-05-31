@@ -1,0 +1,105 @@
+<!doctype html>
+<html>
+
+  <head>
+	<meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>Socket.IO chat</title>
+	<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js"></script>
+    <link href="/styles/main.css" rel="stylesheet">
+	<link rel="stylesheet" href="/styles/bootstrap.min.css">
+  </head>
+  <body>
+  	<div class="container">
+		<ul id="messages"></ul>
+		<div class="row">
+			<div class="col-md-6 col-md-offset-4">
+					<h1 id="welcome">Welcome, </h1> 
+					<h1 id="team"></h1>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-md-6 col-md-offset-4">
+					<h1 id="prompt"></h1> 
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-md-4 col-md-offset-4">
+				<form action="" id="submitform" style="display:none;">
+					<input type="text" id="m" autocomplete="off" />
+					<button type="submit" class="btn btn-primary">Send</button>
+				</form>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-md-6 col-md-offset-4">
+					<h1 id="red" style="color:red;"></h1>
+					<h1 id="blue" style="color:cyan;"></h1>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-md-6 col-md-offset-4">
+					<h1 id="winner"></h1>
+			</div>
+		</div>
+	</div>
+	<script src="/socket.io/socket.io.js"></script>
+	<script>
+		var socket = io();
+		var team = "";
+		$('form').submit(function(){
+			console.log("submitting answer...");
+			socket.emit('answer', {answer:$('#m').val(), team: team});
+			$('#m').val('');
+			return false;
+		});
+		socket.emit('room', {room:"user"});
+		socket.on('hello', function (data) {
+			console.log('hello:', data);
+			$('#welcome').text(function(i, oldText) {
+				return "Welcome," + data.hello;
+			});
+			$('#team').text(function(i, oldText) {
+				if(data.team == "Red")
+					$('#team').css('color','red');
+				else
+					$('#team').css('color','cyan');
+				team = data.team;
+				return "Your team is:" + data.team;
+			});
+		});
+		socket.on('prompt', function (data) {
+			console.log('prompt:', data);
+			$('#prompt').css('display', 'inline');
+			$('#submitform').css('display', 'inline');
+			$('#prompt').text(function(i, oldText) {
+				return data.prompt;
+			});
+		});
+		socket.on('gameend', function (data) {
+			console.log('prompt:', data);
+			$('#submitform').css('display', 'none');
+			$('#prompt').css('display', 'none');
+			$('#red').text(function(i, oldText) {
+				return "Red Total: " + data.red;
+			});
+			$('#blue').text(function(i, oldText) {
+				return "Blue Total: " + data.blue;
+			});
+			$('#winner').text(function(i, oldText) {
+				if (data.winner == "Red"){
+					$('#winner').css('color','red');
+					return "Red Wins!";
+				}
+				else{
+					$('#winner').css('color','cyan');
+					return "Blue Wins!";
+				}
+			});
+		});
+    </script>
+  </body> 
+</html>
