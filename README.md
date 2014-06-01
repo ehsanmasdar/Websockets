@@ -1,4 +1,4 @@
 Websockets
 ==========
 
-Websockets game for a school project!
+A websockets and nodjs based realtime geography game!

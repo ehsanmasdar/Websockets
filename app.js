@@ -3,10 +3,10 @@ var app = require('express')();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 app.use("/styles", express.static(__dirname + '/styles'));
-app.get('/', function(req, res){
+app.get('/greatideas', function(req, res){
   res.sendfile('index.html');
 });
-app.get('/admin', function(req, res){
+app.get('/greatideas/admin', function(req, res){
   res.sendfile('admin.html');
 });
 var users = [];
@@ -14,7 +14,7 @@ var userNumber = 0;
 var totalusers = 0;
 var red = 0;
 var blue = 0;
-var pointreq = 3;
+var pointreq = 20;
 var gamerunning = false;
 io.on('connection', function(socket){
   var myNumber = userNumber;
@@ -131,7 +131,7 @@ io.on('connection', function(socket){
 {"text":"What is the capital of Belgium?","answer":"Brussels"}, 
 {"text":"What is the capital of Algeria?","answer":"Algiers"}
 ];
-		var randomselection = Math.round((Math.random()*questionarray.length-1));
+		var randomselection = Math.round((Math.random()*(questionarray.length-1)));
 		var question = questionarray[randomselection];
 		console.log(question);
 		return question;
