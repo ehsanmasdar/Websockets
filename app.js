@@ -1,25 +1,13 @@
 var express = require('express');
 var app = require('express')();
-var router = express.Router();
-var path = require('path');
-var server = app.listen(3000);
-var io = require('socket.io').listen(server);
-var bodyParser = require('body-parser');
-var morgan  = require('morgan');
-var errorhandler = require('errorhandler')
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'jade');
-app.engine('html', require('ejs').renderFile);
+var http = require('http').Server(app);
+var io = require('socket.io')(http);
 app.use("/styles", express.static(__dirname + '/styles'));
-app.use(morgan());
-app.use(express.static(__dirname + '/public'));
-app.use(bodyParser());
-app.use(errorhandler());
-app.get( '/greatideas', function(req, res){
-  res.render('index.html');
+app.get('/', function(req, res){
+  res.sendfile('index.html');
 });
-app.get('/greatideas/admin', function(req, res){
-  res.render('admin.html');
+app.get('/admin', function(req, res){
+  res.sendfile('admin.html');
 });
 var users = [];
 var userNumber = 0;
@@ -148,4 +136,8 @@ io.on('connection', function(socket){
 		console.log(question);
 		return question;
 	}
+});
+
+http.listen(3000, function(){
+  console.log('listening on *:3000');
 });
