@@ -2,13 +2,19 @@ var express = require('express');
 var app = require('express')();
 var router = express.Router();
 var path = require('path');
-var http = require('http').Server(app);
-var io = require('socket.io')(http);
+var server = app.listen(3000);
+var io = require('socket.io').listen(server);
+var bodyParser = require('body-parser');
+var morgan  = require('morgan');
+var errorhandler = require('errorhandler')
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 app.engine('html', require('ejs').renderFile);
 app.use("/styles", express.static(__dirname + '/styles'));
-
+app.use(morgan());
+app.use(express.static(__dirname + '/public'));
+app.use(bodyParser());
+app.use(errorhandler());
 app.get( '/greatideas', function(req, res){
   res.render('index.html');
 });
@@ -25,6 +31,7 @@ var gamerunning = false;
 io.on('connection', function(socket){
   var myNumber = userNumber;
   userNumber++;
+  totalusers++;
   var myName = 'Player: ' + myNumber;
   console.log( 'user ' + myNumber + '  connected');
   users[myNumber] = socket;
@@ -37,7 +44,6 @@ io.on('connection', function(socket){
   socket.on('room', function(data){
 	socket.join(data.room);
 	console.log("Joined " + data.room);
-	totalusers++;
 	io.to('admin').emit('users', {users:totalusers});
 	if (data.room == "user"){
 		if (gamerunning){
@@ -46,7 +52,6 @@ io.on('connection', function(socket){
 			io.to('user').emit('prompt', {prompt: question.text});
 		}
 	}
-	io.to('admin').emit('users', {users:totalusers});
 	io.to('admin').emit('scoreboard', {red:red, blue:blue});
 	users[myNumber].type = data.room;
   });
@@ -58,6 +63,10 @@ io.on('connection', function(socket){
 				red++
 			else
 				blue++
+			var question = getQuestion(myNumber);
+
+				users[myNumber].answer = question.answer;
+			socket.emit('prompt', {prompt: question.text});
 		}
 		socket.emit('correct');
 	}
@@ -77,7 +86,6 @@ io.on('connection', function(socket){
   socket.on('disconnect', function () {
 	console.log( 'user ' + myNumber + '  disconnected');
 	totalusers--;
-	users.splice(myNumber, 1);
 	io.to('admin').emit('users', {users:totalusers});
   });
   socket.on('start', function(){
@@ -141,6 +149,3 @@ io.on('connection', function(socket){
 		return question;
 	}
 });
-module.exports = router;
-var server = http.listen(3000);
-console.log(http.address());
