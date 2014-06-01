@@ -4,31 +4,30 @@ var router = express.Router();
 var path = require('path');
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
-console.log("called");
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 app.engine('html', require('ejs').renderFile);
 app.use("/styles", express.static(__dirname + '/styles'));
 
-app.get( '/', function(req, res){
+app.get( '/greatideas', function(req, res){
   res.render('index.html');
 });
-app.get('/admin', function(req, res){
+app.get('/greatideas/admin', function(req, res){
   res.render('admin.html');
 });
-var users = {};
-var userNumber = 1;
+var users = [];
+var userNumber = 0;
 var totalusers = 0;
 var red = 0;
 var blue = 0;
 var pointreq = 3;
 var gamerunning = false;
 io.on('connection', function(socket){
-  console.log('a user connected');
-  console.log(totalusers);
-  var myNumber = userNumber++;
-  var myName = 'user#' + myNumber;
-  users[myName] = socket;
+  var myNumber = userNumber;
+  userNumber++;
+  var myName = 'Player: ' + myNumber;
+  console.log( 'user ' + myNumber + '  connected');
+  users[myNumber] = socket;
   if (myNumber%2 == 0){
 	socket.emit('hello', { hello: myName, team: "Red"});
   }
@@ -38,20 +37,32 @@ io.on('connection', function(socket){
   socket.on('room', function(data){
 	socket.join(data.room);
 	console.log("Joined " + data.room);
+	totalusers++;
+	io.to('admin').emit('users', {users:totalusers});
 	if (data.room == "user"){
-		totalusers++;
-		io.to('admin').emit('users', {users:totalusers});
+		if (gamerunning){
+			var question = getQuestion(myNumber);
+			users[myNumber].answer = question.answer;
+			io.to('user').emit('prompt', {prompt: question.text});
+		}
 	}
 	io.to('admin').emit('users', {users:totalusers});
+	io.to('admin').emit('scoreboard', {red:red, blue:blue});
+	users[myNumber].type = data.room;
   });
   socket.on('answer', function(data){
-	if(data.answer == 1){
+	console.log("Answer: " + data.answer); 
+	if(data.answer.toLowerCase() == socket.answer.toLowerCase()){
 		if(gamerunning){
 			if (data.team == "Red")
 				red++
 			else
 				blue++
 		}
+		socket.emit('correct');
+	}
+	else{
+		socket.emit('incorrect');
 	}
 	io.to('admin').emit('scoreboard', {red:red, blue:blue});
 	if (red >= pointreq){
@@ -64,19 +75,71 @@ io.on('connection', function(socket){
 	}
   });
   socket.on('disconnect', function () {
-    console.log('user disconnected');
-    users[myName] = null;
+	console.log( 'user ' + myNumber + '  disconnected');
+	totalusers--;
+	users.splice(myNumber, 1);
 	io.to('admin').emit('users', {users:totalusers});
   });
   socket.on('start', function(){
-	totalusers--;
 	console.log("Recieved start");
 	red = 0;
 	blue = 0;
 	gamerunning = true;
-	io.to('user').emit('prompt', {prompt:'prompt'});
+	for (var i = 0; i < users.length; i++){
+		var question = getQuestion(myNumber);
+		if (users[i] != null){
+			users[i].emit('prompt', {prompt: question.text });
+			users[i].answer = question.answer;
+		}
+		else{
+			users.splice(i, 1);
+		}
+	}
 	io.to('admin').emit('scoreboard', {red:red, blue:blue});
   });
+  function getQuestion(id) {
+	var questionarray = [
+{"text":"What is the capital of the United Arab Emirates?","answer":"Abu Dhabi"}, 
+{"text":"What is the capital of the Netherlands?","answer":"Amsterdam"}, 
+{"text":"What is the capital of China?","answer":"Beijing"}, 
+{"text":"What is the capital of Finland?","answer":"Helsinki"}, 
+{"text":"What is the capital of Cuba?","answer":"Havana"}, 
+{"text":"What is the capital of Pakistan?","answer":"Islamabad"}, 
+{"text":"What is the capital of Ukraine?","answer":"Kiev"}, 
+{"text":"What is the capital of Malaysia?","answer":"Kuala Lumpur"}, 
+{"text":"What is the capital of the United Kingdom?","answer":"London"}, 
+{"text":"What is the capital of the Philippines?","answer":"Manila"}, 
+{"text":"What is the capital of Mexico?","answer":"Mexico City"}, 
+{"text":"What is the capital of Russia?","answer":"Moscow"}, 
+{"text":"What is the capital of India?","answer":"New Delhi"}, 
+{"text":"What is the capital of Norway?","answer":"Oslo"}, 
+{"text":"What is the capital of Canada?","answer":"Ottawa"}, 
+{"text":"What is the capital of France?","answer":"Paris"}, 
+{"text":"What is the capital of Italy?","answer":"Rome"}, 
+{"text":"What is the capital of Austria?","answer":"Vienna"}, 
+{"text":"What is the capital of Poland?","answer":"Warsaw"}, 
+{"text":"What is the capital of Iraq?","answer":"Baghdad"}, 
+{"text":"What is the capital of Iran?","answer":"Tehran"}, 
+{"text":"What is the capital of Belgium?","answer":"Brussels"}, 
+{"text":"What is the capital of Algeria?","answer":"Algiers"}, 
+{"text":"What is the capital of Turkey?","answer":"Ankara"}, 
+{"text":"What is the capital of Brazil?","answer":"Brasilia"}, 
+{"text":"What is the capital of Algeria?","answer":"Algiers"}, 
+{"text":"What is the capital of Spain?","answer":"Madrid"}, 
+{"text":"What is the capital of Luxembourg?","answer":"Luxembourg"}, 
+{"text":"What is the capital of Algeria?","answer":"Algiers"}, 
+{"text":"What is the capital of Spain?","answer":"Madrid"}, 
+{"text":"What is the capital of Luxembourg?","answer":"Luxembourg"}, 
+{"text":"What is the capital of Iraq?","answer":"Baghdad"}, 
+{"text":"What is the capital of Iran?","answer":"Tehran"}, 
+{"text":"What is the capital of Belgium?","answer":"Brussels"}, 
+{"text":"What is the capital of Algeria?","answer":"Algiers"}
+];
+		var randomselection = Math.round((Math.random()*questionarray.length-1));
+		var question = questionarray[randomselection];
+		console.log(question);
+		return question;
+	}
 });
 module.exports = router;
 var server = http.listen(3000);

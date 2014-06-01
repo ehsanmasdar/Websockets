@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="">
     <meta name="author" content="">
-    <title>Socket.IO chat</title>
+    <title>Education Game</title>
 	<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js"></script>
     <link href="/styles/main.css" rel="stylesheet">
 	<link rel="stylesheet" href="/styles/bootstrap.min.css">
@@ -16,18 +16,18 @@
   	<div class="container">
 		<ul id="messages"></ul>
 		<div class="row">
-			<div class="col-md-6 col-md-offset-4">
+			<div class="col-md-6 col-md-offset-4 col-sm-12">
 					<h1 id="welcome">Welcome, </h1> 
 					<h1 id="team"></h1>
 			</div>
 		</div>
 		<div class="row">
-			<div class="col-md-6 col-md-offset-4">
-					<h1 id="prompt"></h1> 
+			<div class="col-md-6 col-md-offset-4 col-sm-12">
+					<h1 id="prompt">Waiting for Game to Start...</h1> 
 			</div>
 		</div>
 		<div class="row">
-			<div class="col-md-4 col-md-offset-4">
+			<div class="col-md-6 col-md-offset-4 col-sm-12">
 				<form action="" id="submitform" style="display:none;">
 					<input type="text" id="m" autocomplete="off" />
 					<button type="submit" class="btn btn-primary">Send</button>
@@ -35,8 +35,24 @@
 			</div>
 		</div>
 		<div class="row">
-			<div class="col-md-6 col-md-offset-4">
-					<h1 id="red" style="color:red;"></h1>
+			<div class="col-md-6 col-md-offset-4 col-sm-12">
+				<div class="alert alert-success alert-dismissable" id="correct" style="display:none;padding-top:20px;">
+					<button type="button" class="close" data-dismiss="alert" 	aria-hidden="true">&times;</button>
+					<strong>Correct!</strong>
+				</div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-md-6 col-md-offset-4 col-sm-12">
+				<div class="alert alert-danger alert-dismissable" id="incorrect"style="display:none;padding-top:20px;">
+					<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+					<strong>Incorrect!</strong>
+				</div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-md-6 col-md-offset-4 col-sm-12">
+					<h1 id="red" style="color:red;"></h1><br>
 					<h1 id="blue" style="color:cyan;"></h1>
 			</div>
 		</div>
@@ -73,16 +89,30 @@
 		});
 		socket.on('prompt', function (data) {
 			console.log('prompt:', data);
-			$('#prompt').css('display', 'inline');
 			$('#submitform').css('display', 'inline');
+			$('#red').css('display', 'none');
+			$('#blue').css('display', 'none');
+			$('#winner').css('display', 'none');
 			$('#prompt').text(function(i, oldText) {
 				return data.prompt;
 			});
 		});
+		socket.on('correct', function () {
+			$('#submitform').css('display', 'none');
+		});
+		socket.on('incorrect', function () {
+		});
 		socket.on('gameend', function (data) {
 			console.log('prompt:', data);
 			$('#submitform').css('display', 'none');
-			$('#prompt').css('display', 'none');
+			$('#red').css('display', 'inline');
+			$('#blue').css('display', 'inline');
+			$('#winner').css('display', 'inline');
+			$('#correct').css('display', 'none');
+			$('#incorrect').css('display', 'none');
+			$('#prompt').text(function(i, oldText) {
+				return "Waiting for Game to Start...";
+			});
 			$('#red').text(function(i, oldText) {
 				return "Red Total: " + data.red;
 			});

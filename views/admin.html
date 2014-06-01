@@ -1,13 +1,12 @@
 <!doctype html>
 <html>
-
   <head>
 	<meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="">
     <meta name="author" content="">
-    <title>Socket.IO chat</title>
+    <title>Education Game-Admin</title>
 	<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js"></script>
     <link href="/styles/main.css" rel="stylesheet">
 	<link rel="stylesheet" href="/styles/bootstrap.min.css">
@@ -52,6 +51,7 @@
 		});
 		socket.on('scoreboard', function (data) {
 			console.log('users:', data);
+			$('#winner').css('display', 'none');
 			$('#rednum').text(function(i, oldText) {
 				return data.red;
 			});
@@ -61,6 +61,7 @@
 		});
 		socket.on('gameend', function (data) {
 			console.log('prompt:', data);
+			$('#winner').css('display', 'inline');
 			$('#winner').text(function(i, oldText) {
 				if (data.winner == "Red"){
 					$('#winner').css('color','red');
