@@ -60,10 +60,6 @@ io.on('connection', function(socket){
 	}
 	else{
 		socket.emit('incorrect');
-		if (data.team == "Red")
-		   red--;
-		else
-		   blue--;
 	}
 	io.to('admin').emit('scoreboard', {red:red, blue:blue});
 	if (red >= pointreq){
