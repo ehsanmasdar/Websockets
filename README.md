@@ -1,7 +1,7 @@
 Websockets
 ==========
 
-A websockets and nodjs based realtime geography game.
+A websockets and nodejs based realtime geography game.
 
 Licenced under MIT License, see LICENSE for full text.
 
