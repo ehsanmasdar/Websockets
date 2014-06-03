@@ -14,7 +14,7 @@ var userNumber = 0;
 var totalusers = 0;
 var red = 0;
 var blue = 0;
-var pointreq = 20;
+var pointreq = 50;
 var gamerunning = false;
 io.on('connection', function(socket){
   var myNumber = userNumber;
@@ -48,9 +48,9 @@ io.on('connection', function(socket){
 	if(data.answer.toLowerCase() == socket.answer.toLowerCase()){
 		if(gamerunning){
 			if (data.team == "Red")
-				red++
+				red+=2;
 			else
-				blue++
+				blue+=2;
 			var question = getQuestion(myNumber);
 
 				users[myNumber].answer = question.answer;
@@ -60,6 +60,10 @@ io.on('connection', function(socket){
 	}
 	else{
 		socket.emit('incorrect');
+		if (data.team == "Red")
+		   red--;
+		else
+		   blue--;
 	}
 	io.to('admin').emit('scoreboard', {red:red, blue:blue});
 	if (red >= pointreq){
